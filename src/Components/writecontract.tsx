@@ -1,9 +1,8 @@
 import Web3 from "web3";
-import { ethers, Signer } from "ethers";
+import { ethers } from "ethers";
 
-import { Button } from "@mui/material";
 import React, { createContext, useEffect, useState } from "react";
-const web3 = new Web3("https://data-seed-prebsc-1-s1.binance.org:8545/");
+// const web3 = new Web3("https://data-seed-prebsc-1-s1.binance.org:8545/");
 
 const contractABI: any = [
   { inputs: [], stateMutability: "nonpayable", type: "constructor" },
@@ -248,13 +247,15 @@ const { ethereum }: any = window;
 
 export const TransactionContext = createContext({});
 export const CreateEthereumContract = () => {
-  const provider =new ethers.providers.Web3Provider(ethereum);
+  const provider= new ethers.providers.Web3Provider(ethereum)
+
+  // const provider =new ethers.providers.Web3Provider(ethereum);
   //  await provider.send('eth_requestAccounts',[])
   
    const signer= provider.getSigner()
   const Contract = new ethers.Contract(contractAddress,contractABI,signer);
-  const signeraddress=signer.getAddress()
-  console.log(Contract,signeraddress);
+  // const signeraddress=signer.getAddress()
+  // console.log(Contract,signeraddress);
   
   return Contract;
 };
@@ -307,6 +308,7 @@ const ContractProvider = ({ children }: any) => {
     try {
         
         if(ethereum){
+          setIsLoading(!isLoading)
             const {recipient,amount}=formData
             const contract=CreateEthereumContract()          
             const parsedAmount= ethers.utils.parseEther(amount)
@@ -322,16 +324,17 @@ const ContractProvider = ({ children }: any) => {
           //           data:data
           //       }]
           //   })            
-            const transactionHash = data.hash
+            const transactionHash = await data.wait()
             console.log(transactionHash);
-            alert (`Success ... ${transactionHash}`)
+                       
+            alert (`Success ... ${data.hash}`)
+            setIsLoading(false)
             
         }else{
             return console.log('no ethereum object');
         }
     } catch (error) {
         console.log(error);
-        
     }
 
   }
@@ -342,7 +345,7 @@ const ContractProvider = ({ children }: any) => {
   return (
     <div>
       {
-        <TransactionContext.Provider value={{ Account, ConnectToAccount,onHandleChange,formData,sendTransaction}}>
+        <TransactionContext.Provider value={{ Account, ConnectToAccount,onHandleChange,formData,sendTransaction,isLoading}}>
           {children}
         </TransactionContext.Provider>
       }
