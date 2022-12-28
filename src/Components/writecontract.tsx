@@ -1,6 +1,6 @@
 import Web3 from "web3";
-import { ethers } from "ethers";
-import Tx from "ethereumjs-tx";
+import { ethers, Signer } from "ethers";
+
 import { Button } from "@mui/material";
 import React, { createContext, useEffect, useState } from "react";
 const web3 = new Web3("https://data-seed-prebsc-1-s1.binance.org:8545/");
@@ -248,9 +248,14 @@ const { ethereum }: any = window;
 
 export const TransactionContext = createContext({});
 export const CreateEthereumContract = () => {
-  const provider = new ethers.providers.Web3Provider(ethereum);
-  const signer = provider.getSigner();
-  const Contract = new ethers.Contract(contractAddress,contractABI, signer);
+  const provider =new ethers.providers.Web3Provider(ethereum);
+  //  await provider.send('eth_requestAccounts',[])
+  
+   const signer= provider.getSigner()
+  const Contract = new ethers.Contract(contractAddress,contractABI,signer);
+  const signeraddress=signer.getAddress()
+  console.log(Contract,signeraddress);
+  
   return Contract;
 };
 
@@ -303,26 +308,23 @@ const ContractProvider = ({ children }: any) => {
         
         if(ethereum){
             const {recipient,amount}=formData
-            const contract=CreateEthereumContract()
+            const contract=CreateEthereumContract()          
             const parsedAmount= ethers.utils.parseEther(amount)
-           await ethereum.request({
-                method:'eth_sendTransaction',
-                params:[{
-                    from:Account,
-                    to:recipient,
-                    gas:'0x5208',
-                    value:parsedAmount._hex
-                }]
-            })
-            const transactionHash=await contract.transfer(recipient,parsedAmount)
-            console.log(transactionHash);
-
+            const data=await contract.transfer(recipient,parsedAmount)
+            console.log(data);
             
-            setIsLoading(true)
-            alert(`Loading ... ${transactionHash.hash}`)
-            await transactionHash.wait()
-            setIsLoading(false)
-            alert (`Success ... ${transactionHash.hash}`)
+          //  await ethereum.request({
+          //       method:'eth_sendTransaction',
+          //       params:[{
+          //           from:Account,
+          //           to:contractAddress,
+          //           gas:'0x5208',
+          //           data:data
+          //       }]
+          //   })            
+            const transactionHash = data.hash
+            console.log(transactionHash);
+            alert (`Success ... ${transactionHash}`)
             
         }else{
             return console.log('no ethereum object');
